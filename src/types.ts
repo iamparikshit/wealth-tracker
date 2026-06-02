@@ -1,14 +1,31 @@
 export type ExpenseCategory =
   | 'food'
-  | 'transport'
-  | 'shopping'
-  | 'entertainment'
-  | 'health'
-  | 'utilities'
-  | 'housing'
-  | 'education'
+  | 'groceries'
   | 'travel'
-  | 'other';
+  | 'rent'
+  | 'shopping'
+  | 'medical'
+  | 'entertainment'
+  | 'recharge'
+  | 'fd'
+  | 'rd'
+  | 'ppf'
+  | 'mf'
+  | 'home_decor'
+  | 'stocks'
+  | 'transfer_baba'
+  | 'transfer_mummy'
+  | 'gold'
+  | 'petrol'
+  | 'house_maid'
+  | 'other'
+  | 'vegetables_fruit'
+  | 'milk'
+  | 'electricity_bill'
+  | 'grooming'
+  | 'automobile_service';
+
+export type InvestmentCategory = 'fd' | 'rd' | 'ppf' | 'mf' | 'stocks' | 'gold';
 
 export type AssetType =
   | 'bank'

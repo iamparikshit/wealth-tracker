@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { TrendingUp, TrendingDown, ChevronLeft, ChevronRight, Settings, LogOut, Wallet } from 'lucide-react';
-import { Expense, Budget, Tab } from '../types';
-import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LIST } from '../constants';
+import { TrendingUp, TrendingDown, ChevronLeft, ChevronRight, Settings, LogOut, Wallet, PiggyBank } from 'lucide-react';
+import { Expense, Budget, Tab, InvestmentCategory } from '../types';
+import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LIST, INVESTMENT_CATEGORIES, INVESTMENT_CATEGORY_META } from '../constants';
 import { formatCurrency, formatMonthYear, getDaysInMonth } from '../utils';
 import { CategoryBadge } from './CategoryBadge';
 
@@ -22,9 +22,42 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [budgetCategory, setBudgetCategory] = useState<string>('food');
   const [budgetInput, setBudgetInput] = useState('');
+  const [showInvestmentModal, setShowInvestmentModal] = useState(false);
 
   const monthExpenses = useMemo(() => getMonthExpenses(year, month), [getMonthExpenses, year, month]);
   const total = useMemo(() => monthExpenses.reduce((s, e) => s + Number(e.amount), 0), [monthExpenses]);
+
+  // Investment totals for current month
+  const investmentTotal = useMemo(() => {
+    return monthExpenses
+      .filter((e) => INVESTMENT_CATEGORIES.includes(e.category as InvestmentCategory))
+      .reduce((s, e) => s + Number(e.amount), 0);
+  }, [monthExpenses]);
+
+  // All-time investment totals
+  const allTimeInvestments = useMemo(() => {
+    const totals: Partial<Record<InvestmentCategory, number>> = {};
+    for (const cat of INVESTMENT_CATEGORIES) {
+      totals[cat] = 0;
+    }
+    for (const e of expenses) {
+      if (INVESTMENT_CATEGORIES.includes(e.category as InvestmentCategory)) {
+        totals[e.category as InvestmentCategory] = (totals[e.category as InvestmentCategory] || 0) + Number(e.amount);
+      }
+    }
+    return totals;
+  }, [expenses]);
+
+  const allTimeInvestmentTotal = useMemo(() => {
+    return Object.values(allTimeInvestments).reduce((s, v) => s + v, 0);
+  }, [allTimeInvestments]);
+
+  // Non-investment expenses
+  const spendingTotal = useMemo(() => {
+    return monthExpenses
+      .filter((e) => !INVESTMENT_CATEGORIES.includes(e.category as InvestmentCategory))
+      .reduce((s, e) => s + Number(e.amount), 0);
+  }, [monthExpenses]);
 
   const prevMonthTotal = useMemo(() => {
     const pm = month === 0 ? 11 : month - 1;
@@ -35,18 +68,20 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
   const diff = prevMonthTotal > 0 ? ((total - prevMonthTotal) / prevMonthTotal) * 100 : 0;
   const daysInMonth = getDaysInMonth(year, month);
   const dayOfMonth = year === now.getFullYear() && month === now.getMonth() ? now.getDate() : daysInMonth;
-  const avgPerDay = dayOfMonth > 0 ? total / dayOfMonth : 0;
+  const avgPerDay = dayOfMonth > 0 ? spendingTotal / dayOfMonth : 0;
 
   const monthlyBudget = useMemo(() => {
     return budgets.reduce((s, b) => s + Number(b.monthly_limit), 0);
   }, [budgets]);
 
-  const budgetPct = monthlyBudget > 0 ? Math.min((total / monthlyBudget) * 100, 100) : 0;
+  const budgetPct = monthlyBudget > 0 ? Math.min((spendingTotal / monthlyBudget) * 100, 100) : 0;
 
   const topCategories = useMemo(() => {
     const totals: Record<string, number> = {};
     for (const e of monthExpenses) {
-      totals[e.category] = (totals[e.category] || 0) + Number(e.amount);
+      if (!INVESTMENT_CATEGORIES.includes(e.category as InvestmentCategory)) {
+        totals[e.category] = (totals[e.category] || 0) + Number(e.amount);
+      }
     }
     return Object.entries(totals)
       .sort((a, b) => b[1] - a[1])
@@ -135,10 +170,22 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
         </div>
       </button>
 
-      {/* Expenses Card */}
+      {/* Investment Card */}
+      <button
+        onClick={() => setShowInvestmentModal(true)}
+        className="rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 p-5 shadow-xl shadow-amber-500/20 text-left hover:shadow-amber-500/40 transition-shadow"
+      >
+        <p className="text-amber-100 text-sm font-medium flex items-center gap-1.5">
+          <PiggyBank size={14} /> Investments
+        </p>
+        <p className="text-3xl font-bold text-white mt-1">{formatCurrency(allTimeInvestmentTotal)}</p>
+        <p className="text-amber-200 text-xs mt-1">All-time total invested</p>
+      </button>
+
+      {/* Expenses Card (spending only, excludes investments) */}
       <div className="rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 p-5 shadow-xl shadow-emerald-500/20">
-        <p className="text-emerald-100 text-sm font-medium">Total Expenses</p>
-        <p className="text-3xl font-bold text-white mt-1">{formatCurrency(total)}</p>
+        <p className="text-emerald-100 text-sm font-medium">Total Spending</p>
+        <p className="text-3xl font-bold text-white mt-1">{formatCurrency(spendingTotal)}</p>
         <div className="flex items-center gap-2 mt-2">
           {diff !== 0 ? (
             <>
@@ -175,22 +222,26 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <div className="bg-slate-800/60 rounded-2xl p-4">
-          <p className="text-slate-400 text-xs font-medium">Daily Average</p>
-          <p className="text-white font-bold text-xl mt-1">{formatCurrency(avgPerDay)}</p>
+          <p className="text-slate-400 text-xs font-medium">Daily Avg</p>
+          <p className="text-white font-bold text-lg mt-1">{formatCurrency(avgPerDay)}</p>
         </div>
         <div className="bg-slate-800/60 rounded-2xl p-4">
-          <p className="text-slate-400 text-xs font-medium">Transactions</p>
-          <p className="text-white font-bold text-xl mt-1">{monthExpenses.length}</p>
+          <p className="text-slate-400 text-xs font-medium">Txns</p>
+          <p className="text-white font-bold text-lg mt-1">{monthExpenses.length}</p>
+        </div>
+        <div className="bg-slate-800/60 rounded-2xl p-4">
+          <p className="text-slate-400 text-xs font-medium">Invested</p>
+          <p className="text-amber-400 font-bold text-lg mt-1">{formatCurrency(investmentTotal)}</p>
         </div>
       </div>
 
-      {/* Top Categories */}
+      {/* Top Categories (excludes investments) */}
       {topCategories.length > 0 && (
         <div className="bg-slate-800/60 rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-white font-semibold text-sm">Top Categories</h3>
+            <h3 className="text-white font-semibold text-sm">Top Spending</h3>
             <button onClick={() => onNavigate('analytics')} className="text-emerald-400 text-xs font-medium">
               View all
             </button>
@@ -198,7 +249,7 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
           <div className="flex flex-col gap-2.5">
             {topCategories.map(([cat, amt]) => {
               const meta = EXPENSE_CATEGORIES[cat as keyof typeof EXPENSE_CATEGORIES];
-              const pct = total > 0 ? (amt / total) * 100 : 0;
+              const pct = spendingTotal > 0 ? (amt / spendingTotal) * 100 : 0;
               return (
                 <div key={cat}>
                   <div className="flex justify-between items-center mb-1">
@@ -233,24 +284,79 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
           <div className="flex flex-col gap-2">
             {recentExpenses.map((e) => {
               const meta = EXPENSE_CATEGORIES[e.category as keyof typeof EXPENSE_CATEGORIES];
+              const isInvestment = INVESTMENT_CATEGORIES.includes(e.category as InvestmentCategory);
               return (
                 <div key={e.id} className="bg-slate-800/60 rounded-xl px-4 py-3 flex items-center gap-3">
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0"
-                    style={{ backgroundColor: meta.bg }}
+                    style={{ backgroundColor: isInvestment ? '#f59e0b20' : meta.bg }}
                   >
                     {meta.icon}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white text-sm font-medium truncate">{e.description || meta.label}</p>
-                    <CategoryBadge category={e.category} size="sm" />
+                    <div className="flex items-center gap-2">
+                      <CategoryBadge category={e.category} size="sm" />
+                      {isInvestment && (
+                        <span className="text-amber-400 text-[9px] font-medium bg-amber-400/10 px-1.5 py-0.5 rounded">INVESTMENT</span>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-white font-semibold text-sm flex-shrink-0">
+                  <span className={`font-semibold text-sm flex-shrink-0 ${isInvestment ? 'text-amber-400' : 'text-white'}`}>
                     -{formatCurrency(Number(e.amount))}
                   </span>
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Investment Details Modal */}
+      {showInvestmentModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end">
+          <div className="bg-slate-900 rounded-t-3xl w-full p-6 pb-10 max-h-[80vh] overflow-y-auto">
+            <h2 className="text-white text-lg font-bold mb-4">Investment Breakdown</h2>
+
+            <div className="mb-6 p-4 bg-amber-500/20 rounded-2xl border border-amber-500/30">
+              <p className="text-amber-200 text-sm mb-1">Total Invested</p>
+              <p className="text-3xl font-bold text-white">{formatCurrency(allTimeInvestmentTotal)}</p>
+            </div>
+
+            <div className="space-y-3">
+              {INVESTMENT_CATEGORIES.map((cat) => {
+                const meta = INVESTMENT_CATEGORY_META[cat];
+                const val = allTimeInvestments[cat] || 0;
+                const pct = allTimeInvestmentTotal > 0 ? (val / allTimeInvestmentTotal) * 100 : 0;
+                return (
+                  <div key={cat} className="bg-slate-800/60 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{meta.icon}</span>
+                        <div>
+                          <p className="text-white font-semibold text-sm">{meta.label}</p>
+                          <p className="text-slate-400 text-xs">{pct.toFixed(1)}% of total</p>
+                        </div>
+                      </div>
+                      <p className="text-white font-bold text-lg">{formatCurrency(val)}</p>
+                    </div>
+                    <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${pct}%`, backgroundColor: meta.color }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => setShowInvestmentModal(false)}
+              className="w-full mt-6 bg-slate-800 text-white rounded-xl py-3 font-medium"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

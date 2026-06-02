@@ -1,13 +1,31 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import type { ExpenseCategory, PaymentSource, Tab } from '../types';
-import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LIST, PAYMENT_SOURCES, PAYMENT_SOURCE_LIST, COMMON_BANKS } from '../constants';
+import {
+  EXPENSE_CATEGORIES,
+  PAYMENT_SOURCES,
+  PAYMENT_SOURCE_LIST,
+  COMMON_BANKS,
+  ESSENTIAL_CATEGORIES,
+  LIVING_CATEGORIES,
+  LIFESTYLE_CATEGORIES,
+  INVESTMENT_EXPENSE_CATEGORIES,
+  TRANSFER_CATEGORIES,
+} from '../constants';
 import { todayISO } from '../utils';
 
 interface Props {
   onAdd: (data: { amount: number; category: ExpenseCategory; description: string; date: string; payment_source: PaymentSource; bank_account: string }) => Promise<void>;
   onNavigate: (tab: Tab) => void;
 }
+
+const CATEGORY_GROUPS = [
+  { label: 'Essentials', categories: ESSENTIAL_CATEGORIES },
+  { label: 'Living', categories: LIVING_CATEGORIES },
+  { label: 'Lifestyle', categories: LIFESTYLE_CATEGORIES },
+  { label: 'Investments', categories: INVESTMENT_EXPENSE_CATEGORIES },
+  { label: 'Transfers', categories: TRANSFER_CATEGORIES },
+];
 
 export function AddExpense({ onAdd, onNavigate }: Props) {
   const [amount, setAmount] = useState('');
@@ -70,33 +88,39 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
               step="0.01"
               autoFocus
             />
-            {amount && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm">.00</span>}
           </div>
         </div>
 
-        {/* Category */}
+        {/* Category Groups */}
         <div>
           <label className="text-slate-400 text-xs font-medium uppercase tracking-wider mb-3 block">Category</label>
-          <div className="grid grid-cols-5 gap-2">
-            {EXPENSE_CATEGORY_LIST.map((cat) => {
-              const meta = EXPENSE_CATEGORIES[cat];
-              const isSelected = category === cat;
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setCategory(cat)}
-                  className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 transition-all duration-150 ${
-                    isSelected ? 'border-emerald-500 bg-emerald-500/10' : 'border-transparent bg-slate-800'
-                  }`}
-                >
-                  <span className="text-xl">{meta.icon}</span>
-                  <span className={`text-[9px] font-medium leading-tight text-center ${isSelected ? 'text-emerald-400' : 'text-slate-500'}`}>
-                    {meta.label.split(' ')[0]}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="flex flex-col gap-4">
+            {CATEGORY_GROUPS.map((group) => (
+              <div key={group.label}>
+                <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-widest mb-2">{group.label}</p>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {group.categories.map((cat) => {
+                    const meta = EXPENSE_CATEGORIES[cat];
+                    const isSelected = category === cat;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setCategory(cat)}
+                        className={`flex flex-col items-center gap-0.5 py-2 rounded-xl border-2 transition-all duration-150 ${
+                          isSelected ? 'border-emerald-500 bg-emerald-500/10' : 'border-transparent bg-slate-800'
+                        }`}
+                      >
+                        <span className="text-lg">{meta.icon}</span>
+                        <span className={`text-[9px] font-medium leading-tight text-center px-0.5 ${isSelected ? 'text-emerald-400' : 'text-slate-500'}`}>
+                          {meta.label.length > 10 ? meta.label.split(' ')[0] : meta.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -115,7 +139,7 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
         {/* Payment Source */}
         <div>
           <label className="text-slate-400 text-xs font-medium uppercase tracking-wider mb-3 block">Payment Method</label>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-1.5">
             {PAYMENT_SOURCE_LIST.slice(0, 8).map((src) => {
               const meta = PAYMENT_SOURCES[src];
               const isSelected = paymentSource === src;
@@ -129,7 +153,7 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
                       setBankAccount('');
                     }
                   }}
-                  className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 transition-all duration-150 ${
+                  className={`flex flex-col items-center gap-0.5 py-2 rounded-xl border-2 transition-all duration-150 ${
                     isSelected ? 'border-emerald-500 bg-emerald-500/10' : 'border-transparent bg-slate-800'
                   }`}
                 >
@@ -143,7 +167,7 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
           </div>
         </div>
 
-        {/* Bank Account - shown for UPI, Debit Card, Net Banking */}
+        {/* Bank Account */}
         {requiresBank && (
           <div>
             <label className="text-slate-400 text-xs font-medium uppercase tracking-wider mb-2 block">

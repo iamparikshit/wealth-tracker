@@ -1,7 +1,17 @@
 import { useState } from 'react';
 import { X, Trash2 } from 'lucide-react';
 import type { Expense, ExpenseCategory, PaymentSource, Tab } from '../types';
-import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LIST, PAYMENT_SOURCES, PAYMENT_SOURCE_LIST, COMMON_BANKS } from '../constants';
+import {
+  EXPENSE_CATEGORIES,
+  PAYMENT_SOURCES,
+  PAYMENT_SOURCE_LIST,
+  COMMON_BANKS,
+  ESSENTIAL_CATEGORIES,
+  LIVING_CATEGORIES,
+  LIFESTYLE_CATEGORIES,
+  INVESTMENT_EXPENSE_CATEGORIES,
+  TRANSFER_CATEGORIES,
+} from '../constants';
 
 interface Props {
   expense: Expense | null;
@@ -10,6 +20,14 @@ interface Props {
   onDelete: (id: string) => Promise<void>;
   onNavigate: (tab: Tab) => void;
 }
+
+const CATEGORY_GROUPS = [
+  { label: 'Essentials', categories: ESSENTIAL_CATEGORIES },
+  { label: 'Living', categories: LIVING_CATEGORIES },
+  { label: 'Lifestyle', categories: LIFESTYLE_CATEGORIES },
+  { label: 'Investments', categories: INVESTMENT_EXPENSE_CATEGORIES },
+  { label: 'Transfers', categories: TRANSFER_CATEGORIES },
+];
 
 export function EditExpense({ expense, onClose, onSave, onDelete, onNavigate }: Props) {
   const [amount, setAmount] = useState(String(expense?.amount || 0));
@@ -87,28 +105,36 @@ export function EditExpense({ expense, onClose, onSave, onDelete, onNavigate }: 
             </div>
           </div>
 
+          {/* Category Groups */}
           <div>
             <label className="text-slate-400 text-xs font-medium uppercase tracking-wider mb-3 block">Category</label>
-            <div className="grid grid-cols-5 gap-2">
-              {EXPENSE_CATEGORY_LIST.map((cat) => {
-                const meta = EXPENSE_CATEGORIES[cat];
-                const isSelected = category === cat;
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setCategory(cat)}
-                    className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 transition-all duration-150 ${
-                      isSelected ? 'border-emerald-500 bg-emerald-500/10' : 'border-transparent bg-slate-800'
-                    }`}
-                  >
-                    <span className="text-xl">{meta.icon}</span>
-                    <span className={`text-[9px] font-medium leading-tight text-center ${isSelected ? 'text-emerald-400' : 'text-slate-500'}`}>
-                      {meta.label.split(' ')[0]}
-                    </span>
-                  </button>
-                );
-              })}
+            <div className="flex flex-col gap-4">
+              {CATEGORY_GROUPS.map((group) => (
+                <div key={group.label}>
+                  <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-widest mb-2">{group.label}</p>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {group.categories.map((cat) => {
+                      const meta = EXPENSE_CATEGORIES[cat];
+                      const isSelected = category === cat;
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setCategory(cat)}
+                          className={`flex flex-col items-center gap-0.5 py-2 rounded-xl border-2 transition-all duration-150 ${
+                            isSelected ? 'border-emerald-500 bg-emerald-500/10' : 'border-transparent bg-slate-800'
+                          }`}
+                        >
+                          <span className="text-lg">{meta.icon}</span>
+                          <span className={`text-[9px] font-medium leading-tight text-center px-0.5 ${isSelected ? 'text-emerald-400' : 'text-slate-500'}`}>
+                            {meta.label.length > 10 ? meta.label.split(' ')[0] : meta.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -126,7 +152,7 @@ export function EditExpense({ expense, onClose, onSave, onDelete, onNavigate }: 
           {/* Payment Source */}
           <div>
             <label className="text-slate-400 text-xs font-medium uppercase tracking-wider mb-3 block">Payment Method</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-1.5">
               {PAYMENT_SOURCE_LIST.slice(0, 8).map((src) => {
                 const meta = PAYMENT_SOURCES[src];
                 const isSelected = paymentSource === src;
@@ -140,7 +166,7 @@ export function EditExpense({ expense, onClose, onSave, onDelete, onNavigate }: 
                         setBankAccount('');
                       }
                     }}
-                    className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 transition-all duration-150 ${
+                    className={`flex flex-col items-center gap-0.5 py-2 rounded-xl border-2 transition-all duration-150 ${
                       isSelected ? 'border-emerald-500 bg-emerald-500/10' : 'border-transparent bg-slate-800'
                     }`}
                   >
@@ -169,7 +195,7 @@ export function EditExpense({ expense, onClose, onSave, onDelete, onNavigate }: 
               </button>
 
               {showBankSelect && (
-                <div className="fixed inset-0 bg-black/50 flex items-end z-60" style={{ marginLeft: '-24px', marginBottom: '-40px' }}>
+                <div className="fixed inset-0 bg-black/50 flex items-end z-[60]">
                   <div className="bg-slate-900 rounded-t-3xl w-full p-6 max-h-[70vh] overflow-y-auto">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-white font-bold text-lg">Select Bank</h3>
@@ -186,7 +212,7 @@ export function EditExpense({ expense, onClose, onSave, onDelete, onNavigate }: 
                             setBankAccount(bank);
                             setShowBankSelect(false);
                           }}
-                          className={`px-3 py-2.5 rounded-xl text-sm text-left transition-all transition-all ${
+                          className={`px-3 py-2.5 rounded-xl text-sm text-left transition-all ${
                             bankAccount === bank
                               ? 'bg-emerald-500 text-white'
                               : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
@@ -234,7 +260,7 @@ export function EditExpense({ expense, onClose, onSave, onDelete, onNavigate }: 
 
         {/* Delete Confirmation */}
         {showDeleteConfirm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60" style={{ marginLeft: '-24px', marginBottom: '-40px' }}>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
             <div className="bg-slate-800 rounded-2xl p-6 m-4 max-w-sm w-full">
               <h3 className="text-white font-bold text-lg mb-2">Delete Expense?</h3>
               <p className="text-slate-400 text-sm mb-4">This action cannot be undone.</p>

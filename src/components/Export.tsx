@@ -13,14 +13,16 @@ export function Export({ expenses }: Props) {
   const [error, setError] = useState('');
 
   function generateCSV() {
-    const headers = ['Date', 'Category', 'Description', 'Amount'];
+    const headers = ['Date', 'Category', 'Description', 'Amount', 'Payment Source', 'Bank Account'];
     const rows = expenses.map((e) => {
       const meta = EXPENSE_CATEGORIES[e.category];
       return [
         e.date,
         meta?.label || e.category,
         `"${(e.description || '').replace(/"/g, '""')}"`,
-        Number(e.amount).toFixed(2)
+        Number(e.amount).toFixed(2),
+        e.payment_source || '',
+        e.bank_account || ''
       ].join(',');
     });
     return [headers.join(','), ...rows].join('\n');
