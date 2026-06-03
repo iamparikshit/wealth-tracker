@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Loader } from 'lucide-react';
 import type { ExpenseCategory, PaymentSource, Tab } from '../types';
 import {
   EXPENSE_CATEGORIES,
@@ -224,8 +224,9 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
         <button
           type="submit"
           disabled={loading || !amount}
-          className="bg-emerald-500 text-white rounded-2xl py-4 font-semibold text-lg disabled:opacity-60 shadow-lg shadow-emerald-500/30"
+          className="bg-emerald-500 text-white rounded-2xl py-4 font-semibold text-lg disabled:opacity-60 shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2"
         >
+          {loading && <Loader size={20} className="animate-spin" />}
           {loading ? 'Adding...' : 'Add Expense'}
         </button>
       </form>
