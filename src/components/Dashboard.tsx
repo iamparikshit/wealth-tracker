@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { TrendingUp, TrendingDown, ChevronLeft, ChevronRight, Settings, LogOut, Wallet, PiggyBank } from 'lucide-react';
+import { TrendingUp, TrendingDown, ChevronLeft, ChevronRight, Settings, LogOut, PiggyBank } from 'lucide-react';
 import { Expense, Budget, Tab, InvestmentCategory } from '../types';
 import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LIST, INVESTMENT_CATEGORIES, INVESTMENT_CATEGORY_META } from '../constants';
 import { formatCurrency, formatMonthYear, getDaysInMonth } from '../utils';
@@ -8,19 +8,17 @@ import { CategoryBadge } from './CategoryBadge';
 interface Props {
   expenses: Expense[];
   budgets: Budget[];
-  onSetBudget: (category: string, limit: number) => Promise<void>;
+  onSetBudget: (limit: number) => Promise<void>;
   onNavigate: (tab: Tab) => void;
   getMonthExpenses: (y: number, m: number) => Expense[];
-  totalAssets: number;
   onSignOut: () => void;
 }
 
-export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonthExpenses, totalAssets, onSignOut }: Props) {
+export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonthExpenses, onSignOut }: Props) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [showBudgetModal, setShowBudgetModal] = useState(false);
-  const [budgetCategory, setBudgetCategory] = useState<string>('food');
   const [budgetInput, setBudgetInput] = useState('');
   const [showInvestmentModal, setShowInvestmentModal] = useState(false);
 
@@ -71,7 +69,7 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
   const avgPerDay = dayOfMonth > 0 ? spendingTotal / dayOfMonth : 0;
 
   const monthlyBudget = useMemo(() => {
-    return budgets.reduce((s, b) => s + Number(b.monthly_limit), 0);
+    return budgets.length > 0 ? Number(budgets[0].monthly_limit) : 0;
   }, [budgets]);
 
   const budgetPct = monthlyBudget > 0 ? Math.min((spendingTotal / monthlyBudget) * 100, 100) : 0;
@@ -107,7 +105,7 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
   async function saveBudget() {
     const val = parseFloat(budgetInput);
     if (!isNaN(val) && val >= 0) {
-      await onSetBudget(budgetCategory, val);
+      await onSetBudget(val);
     }
     setShowBudgetModal(false);
     setBudgetInput('');
@@ -125,7 +123,7 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => { setBudgetCategory('food'); setShowBudgetModal(true); }}
+            onClick={() => setShowBudgetModal(true)}
             className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
           >
             <Settings size={16} />
@@ -153,22 +151,6 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
           <ChevronRight size={18} />
         </button>
       </div>
-
-      {/* Total Assets Card */}
-      <button
-        onClick={() => onNavigate('assets')}
-        className="rounded-3xl bg-gradient-to-br from-blue-500 to-cyan-500 p-5 shadow-xl shadow-blue-500/20 text-left"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-blue-100 text-sm font-medium flex items-center gap-1.5">
-              <Wallet size={14} /> Total Assets
-            </p>
-            <p className="text-3xl font-bold text-white mt-1">{formatCurrency(totalAssets)}</p>
-          </div>
-          <ChevronRight className="text-blue-200" size={20} />
-        </div>
-      </button>
 
       {/* Investment Card */}
       <button
@@ -365,21 +347,9 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
       {showBudgetModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-end">
           <div className="bg-slate-900 rounded-t-3xl w-full p-6 pb-10">
-            <h2 className="text-white text-lg font-bold mb-4">Set Category Budget</h2>
-            <label className="text-slate-400 text-sm mb-1 block">Category</label>
-            <select
-              value={budgetCategory}
-              onChange={(e) => setBudgetCategory(e.target.value)}
-              className="w-full bg-slate-800 text-white rounded-xl px-4 py-3 mb-4"
-            >
-              {EXPENSE_CATEGORY_LIST.map((cat) => (
-                <option key={cat} value={cat}>
-                  {EXPENSE_CATEGORIES[cat].icon} {EXPENSE_CATEGORIES[cat].label}
-                </option>
-              ))}
-            </select>
-            <label className="text-slate-400 text-sm mb-1 block">Monthly Limit</label>
-            <div className="relative mb-4">
+            <h2 className="text-white text-lg font-bold mb-4">Set Monthly Budget</h2>
+            <label className="text-slate-400 text-sm mb-1 block">Monthly Expense Limit</label>
+            <div className="relative mb-6">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">₹</span>
               <input
                 type="number"

@@ -76,8 +76,7 @@ export interface AssetTransaction {
 
 export interface Budget {
   id: string;
-  category: ExpenseCategory;
   monthly_limit: number;
 }
 
-export type Tab = 'dashboard' | 'expenses' | 'add' | 'assets' | 'analytics' | 'calendar' | 'export';
+export type Tab = 'dashboard' | 'expenses' | 'add' | 'analytics' | 'calendar' | 'export';

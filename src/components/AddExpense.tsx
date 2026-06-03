@@ -31,7 +31,7 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<ExpenseCategory>('food');
   const [description, setDescription] = useState('');
-  const [date] = useState(todayISO());
+  const [date, setDate] = useState(todayISO());
   const [paymentSource, setPaymentSource] = useState<PaymentSource>('cash');
   const [bankAccount, setBankAccount] = useState('');
   const [showBankSelect, setShowBankSelect] = useState(false);
@@ -215,9 +215,18 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
           </div>
         )}
 
-        {/* Date Display */}
-        <div className="text-center text-slate-500 text-sm">
-          {new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        {/* Date Picker */}
+        <div>
+          <label className="text-slate-400 text-sm mb-1 block">Date</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full bg-slate-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <p className="text-slate-500 text-xs mt-1">
+            {new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
         </div>
 
         {/* Submit */}

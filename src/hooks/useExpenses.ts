@@ -81,8 +81,8 @@ export function useExpenses(userId: string | undefined) {
     setExpenses((prev) => prev.filter((e) => e.id !== id));
   }, []);
 
-  const setBudget = useCallback(async (category: ExpenseCategory, monthlyLimit: number) => {
-    const existing = budgets.find((b) => b.category === category);
+  const setBudget = useCallback(async (monthlyLimit: number) => {
+    const existing = budgets.length > 0 ? budgets[0] : null;
     if (existing) {
       const { data, error } = await supabase
         .from('budgets')
@@ -91,15 +91,15 @@ export function useExpenses(userId: string | undefined) {
         .select()
         .single();
       if (error) throw error;
-      setBudgets((prev) => prev.map((b) => (b.id === existing.id ? data : b)));
+      setBudgets([data]);
     } else {
       const { data, error } = await supabase
         .from('budgets')
-        .insert([{ user_id: userId, category, monthly_limit: monthlyLimit }])
+        .insert([{ user_id: userId, monthly_limit: monthlyLimit }])
         .select()
         .single();
       if (error) throw error;
-      setBudgets((prev) => [...prev, data]);
+      setBudgets([data]);
     }
   }, [userId, budgets]);
 

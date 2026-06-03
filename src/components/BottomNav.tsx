@@ -10,7 +10,6 @@ const TABS: { id: Tab; label: string; Icon: React.ElementType }[] = [
   { id: 'dashboard', label: 'Home', Icon: LayoutDashboard },
   { id: 'expenses', label: 'History', Icon: Receipt },
   { id: 'add', label: 'Add', Icon: Plus },
-  { id: 'assets', label: 'Assets', Icon: Wallet },
   { id: 'analytics', label: 'Stats', Icon: BarChart3 },
   { id: 'calendar', label: 'Calendar', Icon: Calendar },
   { id: 'export', label: 'Export', Icon: Download },

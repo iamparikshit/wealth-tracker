@@ -218,11 +218,16 @@ function PieChart({ data, total }: { data: [ExpenseCategory, number][]; total: n
   const r = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * r;
 
+  const chartColors = [
+    '#f97316', '#22c55e', '#3b82f6', '#14b8a6', '#a855f7', '#ef4444', '#ec4899', '#eab308', '#f59e0b',
+    '#10b981', '#06b6d4', '#8b5cf6', '#f43f5e', '#06b6d4', '#84cc16', '#64748b', '#d946ef', '#f97316'
+  ];
+
   let offset = 0;
-  const segments = data.slice(0, 8).map(([cat, amt]) => {
+  const segments = data.slice(0, 8).map(([cat, amt], idx) => {
     const pct = total > 0 ? amt / total : 0;
     const dash = pct * circumference;
-    const segment = { cat, dash, offset };
+    const segment = { cat, dash, offset, color: chartColors[idx % chartColors.length] };
     offset += dash;
     return segment;
   });
@@ -231,14 +236,14 @@ function PieChart({ data, total }: { data: [ExpenseCategory, number][]; total: n
     <div className="flex items-center justify-center">
       <div className="relative" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
-          {segments.map(({ cat, dash, offset: off }) => (
+          {segments.map(({ cat, dash, offset: off, color }) => (
             <circle
               key={cat}
               cx={size / 2}
               cy={size / 2}
               r={r}
               fill="none"
-              stroke={EXPENSE_CATEGORIES[cat].color}
+              stroke={color}
               strokeWidth={strokeWidth}
               strokeDasharray={`${dash} ${circumference - dash}`}
               strokeDashoffset={-off}

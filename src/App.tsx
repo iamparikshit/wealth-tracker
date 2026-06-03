@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Tab } from './types';
-import type { Expense, Asset, ExpenseCategory, AssetType, TransactionType, PaymentSource } from './types';
+import type { Expense, ExpenseCategory, PaymentSource } from './types';
 import { useAuth } from './hooks/useAuth';
 import { useExpenses } from './hooks/useExpenses';
-import { useAssets } from './hooks/useAssets';
 import { Auth } from './components/Auth';
 import { BottomNav } from './components/BottomNav';
 import { Dashboard } from './components/Dashboard';
 import { AddExpense } from './components/AddExpense';
 import { ExpenseList } from './components/ExpenseList';
-import { Assets } from './components/Assets';
-import { AssetDetail } from './components/AssetDetail';
 import { Analytics } from './components/Analytics';
 import { Calendar } from './components/Calendar';
 import { Export } from './components/Export';
@@ -29,32 +26,16 @@ export default function App() {
     setBudget,
     getMonthExpenses,
   } = useExpenses(user?.id);
-  const {
-    assets,
-    transactions,
-    fetchAssets,
-    fetchTransactions,
-    addAsset,
-    updateAsset,
-    deleteAsset,
-    addTransaction,
-    deleteTransaction,
-    getTotalValue,
-    getAssetTransactions,
-  } = useAssets(user?.id);
 
   const [tab, setTab] = useState<Tab>('dashboard');
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
   useEffect(() => {
     if (user) {
       fetchExpenses();
       fetchBudgets();
-      fetchAssets();
-      fetchTransactions();
     }
-  }, [user, fetchExpenses, fetchBudgets, fetchAssets, fetchTransactions]);
+  }, [user, fetchExpenses, fetchBudgets]);
 
   if (authLoading) {
     return (
@@ -90,36 +71,12 @@ export default function App() {
     await deleteExpense(id);
   }
 
-  async function handleSetBudget(category: string, limit: number) {
-    await setBudget(category as ExpenseCategory, limit);
-  }
-
-  async function handleAddAsset(data: { name: string; type: AssetType; value: number; institution?: string; notes?: string }) {
-    await addAsset(data);
-  }
-
-  async function handleUpdateAsset(id: string, updates: Partial<Asset>) {
-    await updateAsset(id, updates);
-  }
-
-  async function handleDeleteAsset(id: string) {
-    await deleteAsset(id);
-  }
-
-  async function handleAddTransaction(data: { asset_id: string; amount: number; date: string; transaction_type: TransactionType; notes?: string }) {
-    await addTransaction(data);
-  }
-
-  async function handleDeleteTransaction(id: string) {
-    await deleteTransaction(id);
+  async function handleSetBudget(limit: number) {
+    await setBudget(limit);
   }
 
   async function handleSignOut() {
     await signOut();
-  }
-
-  function handleSelectAsset(asset: Asset) {
-    setSelectedAsset(asset);
   }
 
   return (
@@ -133,7 +90,6 @@ export default function App() {
               onSetBudget={handleSetBudget}
               onNavigate={setTab}
               getMonthExpenses={getMonthExpenses}
-              totalAssets={getTotalValue()}
               onSignOut={handleSignOut}
             />
           )}
@@ -145,15 +101,6 @@ export default function App() {
               expenses={expenses}
               onDelete={handleDeleteExpense}
               onEdit={setEditingExpense}
-            />
-          )}
-          {tab === 'assets' && !selectedAsset && (
-            <Assets
-              assets={assets}
-              transactions={transactions}
-              onAdd={handleAddAsset}
-              totalValue={getTotalValue()}
-              onSelectAsset={handleSelectAsset}
             />
           )}
           {tab === 'analytics' && (
@@ -178,18 +125,6 @@ export default function App() {
             onSave={handleUpdateExpense}
             onDelete={handleDeleteExpense}
             onNavigate={setTab}
-          />
-        )}
-
-        {selectedAsset && (
-          <AssetDetail
-            asset={selectedAsset}
-            transactions={getAssetTransactions(selectedAsset.id)}
-            onClose={() => setSelectedAsset(null)}
-            onAddTransaction={handleAddTransaction}
-            onDeleteTransaction={handleDeleteTransaction}
-            onUpdateAsset={handleUpdateAsset}
-            onDeleteAsset={handleDeleteAsset}
           />
         )}
       </div>
