@@ -61,7 +61,7 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
     }
   }
 
-  const requiresBank = ['upi', 'debit_card', 'net_banking'].includes(paymentSource);
+  const requiresBank = true;
 
   return (
     <div className="flex flex-col pb-28 pt-6 px-4">
@@ -149,9 +149,6 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
                   type="button"
                   onClick={() => {
                     setPaymentSource(src);
-                    if (!['upi', 'debit_card', 'net_banking'].includes(src)) {
-                      setBankAccount('');
-                    }
                   }}
                   className={`flex flex-col items-center gap-0.5 py-2 rounded-xl border-2 transition-all duration-150 ${
                     isSelected ? 'border-emerald-500 bg-emerald-500/10' : 'border-transparent bg-slate-800'
