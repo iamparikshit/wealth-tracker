@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { TrendingUp, TrendingDown, ChevronLeft, ChevronRight, Settings, LogOut, PiggyBank } from 'lucide-react';
 import { Expense, Budget, Tab, InvestmentCategory } from '../types';
-import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LIST, INVESTMENT_CATEGORIES, INVESTMENT_CATEGORY_META } from '../constants';
+import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LIST, INVESTMENT_CATEGORIES, INVESTMENT_CATEGORY_META, PAYMENT_SOURCES } from '../constants';
 import { formatCurrency, formatMonthYear, getDaysInMonth } from '../utils';
 import { CategoryBadge } from './CategoryBadge';
 
@@ -277,8 +277,13 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white text-sm font-medium truncate">{e.description || meta.label}</p>
-                    <div className="flex items-center gap-2">
-                      <CategoryBadge category={e.category} size="sm" />
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {e.payment_source && (
+                        <span className="text-slate-500 text-xs flex items-center gap-0.5">
+                          {PAYMENT_SOURCES[e.payment_source]?.icon} {PAYMENT_SOURCES[e.payment_source]?.label}
+                          {e.bank_account && <span className="text-slate-600">({e.bank_account})</span>}
+                        </span>
+                      )}
                       {isInvestment && (
                         <span className="text-amber-400 text-[9px] font-medium bg-amber-400/10 px-1.5 py-0.5 rounded">INVESTMENT</span>
                       )}

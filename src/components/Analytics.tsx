@@ -158,14 +158,19 @@ export function Analytics({ getMonthExpenses }: Props) {
           <PieChart data={categoryTotals} total={total} />
 
           <div className="flex flex-col gap-2 mt-4">
-            {categoryTotals.map(([cat, amt]) => {
+            {categoryTotals.slice(0, 8).map(([cat, amt], idx) => {
+              const chartColors = [
+                '#f97316', '#22c55e', '#3b82f6', '#14b8a6', '#a855f7', '#ef4444', '#ec4899', '#eab308', '#f59e0b',
+                '#10b981', '#06b6d4', '#8b5cf6', '#f43f5e', '#06b6d4', '#84cc16', '#64748b', '#d946ef', '#f97316'
+              ];
+              const color = chartColors[idx % chartColors.length];
               const meta = EXPENSE_CATEGORIES[cat];
               const pct = total > 0 ? (amt / total) * 100 : 0;
               return (
                 <div key={cat} className="flex items-center gap-3">
                   <div
                     className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: meta.color }}
+                    style={{ backgroundColor: color }}
                   />
                   <span className="text-slate-300 text-sm flex-1">{meta.icon} {meta.label}</span>
                   <span className="text-slate-400 text-xs">{pct.toFixed(1)}%</span>

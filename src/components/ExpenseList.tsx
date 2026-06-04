@@ -144,7 +144,6 @@ export function ExpenseList({ expenses, onDelete, onEdit }: Props) {
                             {e.description || meta.label}
                           </p>
                           <div className="flex items-center gap-2 mt-1">
-                            <CategoryBadge category={e.category} size="sm" />
                             {e.payment_source && (
                               <span className="text-slate-500 text-xs flex items-center gap-0.5">
                                 {PAYMENT_SOURCES[e.payment_source]?.icon} {PAYMENT_SOURCES[e.payment_source]?.label}
