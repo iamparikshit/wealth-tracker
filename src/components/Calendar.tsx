@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Expense } from '../types';
-import { PAYMENT_SOURCES } from '../constants';
+import { PAYMENT_SOURCES, isInvestmentCategory } from '../constants';
 import { formatCurrency, getDaysInMonth, formatMonthYear } from '../utils';
 
 interface Props {
@@ -15,7 +15,10 @@ export function Calendar({ getMonthExpenses, onEditExpense }: Props) {
   const [month, setMonth] = useState(now.getMonth());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const monthExpenses = useMemo(() => getMonthExpenses(year, month), [getMonthExpenses, year, month]);
+  const monthExpenses = useMemo(
+    () => getMonthExpenses(year, month).filter((e) => !isInvestmentCategory(e.category)),
+    [getMonthExpenses, year, month]
+  );
 
   const dailyTotals = useMemo(() => {
     const totals: Record<string, number> = {};
@@ -216,22 +219,18 @@ export function Calendar({ getMonthExpenses, onEditExpense }: Props) {
       {/* Monthly Summary */}
       <div className="bg-slate-800/60 rounded-2xl p-4">
         <h3 className="text-white font-semibold text-sm mb-3">Monthly Summary</h3>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <div className="bg-slate-700/50 rounded-xl p-3 text-center">
-            <p className="text-slate-400 text-xs">Total</p>
+            <p className="text-slate-400 text-xs">Total Expenses</p>
             <p className="text-white font-bold text-sm mt-1">
               {formatCurrency(monthExpenses.reduce((s, e) => s + Number(e.amount), 0))}
             </p>
           </div>
           <div className="bg-slate-700/50 rounded-xl p-3 text-center">
-            <p className="text-slate-400 text-xs">Avg/Day</p>
+            <p className="text-slate-400 text-xs">Avg / Day</p>
             <p className="text-white font-bold text-sm mt-1">
               {formatCurrency(monthExpenses.reduce((s, e) => s + Number(e.amount), 0) / getDaysInMonth(year, month))}
             </p>
-          </div>
-          <div className="bg-slate-700/50 rounded-xl p-3 text-center">
-            <p className="text-slate-400 text-xs">Days Active</p>
-            <p className="text-white font-bold text-sm mt-1">{Object.keys(dailyTotals).length}</p>
           </div>
         </div>
       </div>

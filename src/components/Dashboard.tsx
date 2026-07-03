@@ -73,6 +73,7 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
   }, [budgets]);
 
   const budgetPct = monthlyBudget > 0 ? Math.min((spendingTotal / monthlyBudget) * 100, 100) : 0;
+  const remaining = monthlyBudget - spendingTotal;
 
   const topCategories = useMemo(() => {
     const totals: Record<string, number> = {};
@@ -198,7 +199,13 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
                 style={{ width: `${budgetPct}%` }}
               />
             </div>
-            <p className="text-emerald-100 text-xs mt-1.5">{budgetPct.toFixed(0)}% used</p>
+            <div className="flex justify-between text-xs text-emerald-100 mt-1.5">
+              <span>{budgetPct.toFixed(0)}% used</span>
+              <span className={remaining >= 0 ? 'text-emerald-100' : 'text-red-200'}>
+                {remaining >= 0 ? 'Left: ' : 'Over: '}
+                {formatCurrency(Math.abs(remaining))}
+              </span>
+            </div>
           </div>
         )}
       </div>
