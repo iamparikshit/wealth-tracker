@@ -36,12 +36,14 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
   const [bankAccount, setBankAccount] = useState('');
   const [showBankSelect, setShowBankSelect] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const val = parseFloat(amount);
     if (isNaN(val) || val <= 0) return;
     setLoading(true);
+    setError('');
     try {
       await onAdd({
         amount: val,
@@ -56,6 +58,9 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
       setPaymentSource('cash');
       setBankAccount('');
       onNavigate('expenses');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to add expense';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -225,6 +230,10 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
             {new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
+
+        {error && (
+          <p className="text-red-400 text-sm text-center bg-red-400/10 rounded-lg py-2">{error}</p>
+        )}
 
         {/* Submit */}
         <button

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
 import { Expense, ExpenseCategory } from '../types';
-import { EXPENSE_CATEGORIES } from '../constants';
+import { EXPENSE_CATEGORIES, INVESTMENT_CATEGORIES, INVESTMENT_CATEGORY_META } from '../constants';
 import { formatCurrency, formatMonthYear } from '../utils';
 
 interface Props {
@@ -32,6 +32,17 @@ export function Analytics({ getMonthExpenses }: Props) {
     return Object.entries(totals)
       .sort((a, b) => b[1] - a[1]) as [ExpenseCategory, number][];
   }, [monthExpenses]);
+
+  const expenseTotals = useMemo(() => {
+    return categoryTotals.filter(([cat]) => !INVESTMENT_CATEGORIES.includes(cat as any));
+  }, [categoryTotals]);
+
+  const investmentTotals = useMemo(() => {
+    return categoryTotals.filter(([cat]) => INVESTMENT_CATEGORIES.includes(cat as any));
+  }, [categoryTotals]);
+
+  const expenseTotal = useMemo(() => expenseTotals.reduce((s, [, amt]) => s + amt, 0), [expenseTotals]);
+  const investmentTotal = useMemo(() => investmentTotals.reduce((s, [, amt]) => s + amt, 0), [investmentTotals]);
 
   const prevCategoryTotals = useMemo(() => {
     const totals: Partial<Record<ExpenseCategory, number>> = {};
@@ -150,28 +161,21 @@ export function Analytics({ getMonthExpenses }: Props) {
         </div>
       </div>
 
-      {/* Category Pie Chart */}
-      {categoryTotals.length > 0 ? (
+      {/* Expense Pie Chart */}
+      {expenseTotals.length > 0 ? (
         <div className="bg-slate-800/60 rounded-2xl p-4">
-          <h3 className="text-white font-semibold text-sm mb-4">Spending by Category</h3>
+          <h3 className="text-white font-semibold text-sm mb-4">Expenses Breakdown</h3>
 
-          <PieChart data={categoryTotals} total={total} />
+          <PieChart data={expenseTotals} total={expenseTotal} colorScheme="expense" />
 
           <div className="flex flex-col gap-2 mt-4">
-            {categoryTotals.slice(0, 8).map(([cat, amt], idx) => {
-              const chartColors = [
-                '#f97316', '#22c55e', '#3b82f6', '#14b8a6', '#a855f7', '#ef4444', '#ec4899', '#eab308', '#f59e0b',
-                '#10b981', '#06b6d4', '#8b5cf6', '#f43f5e', '#06b6d4', '#84cc16', '#64748b', '#d946ef', '#f97316'
-              ];
-              const color = chartColors[idx % chartColors.length];
+            {expenseTotals.map(([cat, amt], idx) => {
+              const color = CHART_COLORS_EXPENSE[idx % CHART_COLORS_EXPENSE.length];
               const meta = EXPENSE_CATEGORIES[cat];
-              const pct = total > 0 ? (amt / total) * 100 : 0;
+              const pct = expenseTotal > 0 ? (amt / expenseTotal) * 100 : 0;
               return (
                 <div key={cat} className="flex items-center gap-3">
-                  <div
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: color }}
-                  />
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                   <span className="text-slate-300 text-sm flex-1">{meta.icon} {meta.label}</span>
                   <span className="text-slate-400 text-xs">{pct.toFixed(1)}%</span>
                   <span className="text-white font-semibold text-sm">{formatCurrency(amt)}</span>
@@ -181,10 +185,41 @@ export function Analytics({ getMonthExpenses }: Props) {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center mt-10 text-center bg-slate-800/60 rounded-2xl p-8">
-          <div className="w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center text-3xl mb-4">📊</div>
-          <p className="text-white font-semibold">No data yet</p>
-          <p className="text-slate-500 text-sm mt-1">Add expenses to see analytics</p>
+        <div className="flex flex-col items-center justify-center text-center bg-slate-800/60 rounded-2xl p-8">
+          <div className="w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center text-3xl mb-4">💸</div>
+          <p className="text-white font-semibold">No expenses yet</p>
+          <p className="text-slate-500 text-sm mt-1">Add expenses to see breakdown</p>
+        </div>
+      )}
+
+      {/* Investment Pie Chart */}
+      {investmentTotals.length > 0 ? (
+        <div className="bg-slate-800/60 rounded-2xl p-4">
+          <h3 className="text-white font-semibold text-sm mb-4">Investments Breakdown</h3>
+
+          <PieChart data={investmentTotals} total={investmentTotal} colorScheme="investment" />
+
+          <div className="flex flex-col gap-2 mt-4">
+            {investmentTotals.map(([cat, amt], idx) => {
+              const color = CHART_COLORS_INVEST[idx % CHART_COLORS_INVEST.length];
+              const meta = INVESTMENT_CATEGORY_META[cat as any] || EXPENSE_CATEGORIES[cat];
+              const pct = investmentTotal > 0 ? (amt / investmentTotal) * 100 : 0;
+              return (
+                <div key={cat} className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                  <span className="text-slate-300 text-sm flex-1">{meta.icon} {meta.label}</span>
+                  <span className="text-slate-400 text-xs">{pct.toFixed(1)}%</span>
+                  <span className="text-white font-semibold text-sm">{formatCurrency(amt)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center text-center bg-slate-800/60 rounded-2xl p-8">
+          <div className="w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center text-3xl mb-4">📈</div>
+          <p className="text-white font-semibold">No investments yet</p>
+          <p className="text-slate-500 text-sm mt-1">Add investments to see breakdown</p>
         </div>
       )}
 
@@ -217,19 +252,25 @@ export function Analytics({ getMonthExpenses }: Props) {
   );
 }
 
-function PieChart({ data, total }: { data: [ExpenseCategory, number][]; total: number }) {
+const CHART_COLORS_EXPENSE = [
+  '#f97316', '#3b82f6', '#14b8a6', '#ec4899', '#ef4444', '#0ea5e9', '#eab308', '#64748b',
+  '#06b6d4', '#d946ef', '#78716c', '#c084fc', '#f59e0b', '#84cc16', '#f43f5e', '#a855f7'
+];
+
+const CHART_COLORS_INVEST = [
+  '#22c55e', '#8b5cf6', '#0ea5e9', '#f59e0b', '#06b6d4', '#eab308'
+];
+
+function PieChart({ data, total, colorScheme }: { data: [ExpenseCategory, number][]; total: number; colorScheme: 'expense' | 'investment' }) {
   const size = 160;
   const strokeWidth = 24;
   const r = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * r;
 
-  const chartColors = [
-    '#f97316', '#22c55e', '#3b82f6', '#14b8a6', '#a855f7', '#ef4444', '#ec4899', '#eab308', '#f59e0b',
-    '#10b981', '#06b6d4', '#8b5cf6', '#f43f5e', '#06b6d4', '#84cc16', '#64748b', '#d946ef', '#f97316'
-  ];
+  const chartColors = colorScheme === 'investment' ? CHART_COLORS_INVEST : CHART_COLORS_EXPENSE;
 
   let offset = 0;
-  const segments = data.slice(0, 8).map(([cat, amt], idx) => {
+  const segments = data.map(([cat, amt], idx) => {
     const pct = total > 0 ? amt / total : 0;
     const dash = pct * circumference;
     const segment = { cat, dash, offset, color: chartColors[idx % chartColors.length] };

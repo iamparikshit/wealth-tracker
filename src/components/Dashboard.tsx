@@ -160,8 +160,8 @@ export function Dashboard({ expenses, budgets, onSetBudget, onNavigate, getMonth
         <p className="text-amber-100 text-sm font-medium flex items-center gap-1.5">
           <PiggyBank size={14} /> Investments
         </p>
-        <p className="text-3xl font-bold text-white mt-1">{formatCurrency(allTimeInvestmentTotal)}</p>
-        <p className="text-amber-200 text-xs mt-1">All-time total invested</p>
+        <p className="text-3xl font-bold text-white mt-1">{formatCurrency(investmentTotal)}</p>
+        <p className="text-amber-200 text-xs mt-1">Invested in {formatMonthYear(year, month)}</p>
       </button>
 
       {/* Expenses Card (spending only, excludes investments) */}
