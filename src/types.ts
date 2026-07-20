@@ -23,7 +23,8 @@ export type ExpenseCategory =
   | 'milk'
   | 'electricity_bill'
   | 'grooming'
-  | 'automobile_service';
+  | 'automobile_service'
+  | 'art_expense';
 
 export type InvestmentCategory = 'fd' | 'rd' | 'ppf' | 'mf' | 'stocks' | 'gold';
 

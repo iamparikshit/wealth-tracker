@@ -32,7 +32,7 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
   const [category, setCategory] = useState<ExpenseCategory>('food');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(todayISO());
-  const [paymentSource, setPaymentSource] = useState<PaymentSource>('cash');
+  const [paymentSource, setPaymentSource] = useState<PaymentSource>('upi');
   const [bankAccount, setBankAccount] = useState('');
   const [showBankSelect, setShowBankSelect] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -55,7 +55,7 @@ export function AddExpense({ onAdd, onNavigate }: Props) {
       });
       setAmount('');
       setDescription('');
-      setPaymentSource('cash');
+      setPaymentSource('upi');
       setBankAccount('');
       onNavigate('expenses');
     } catch (err) {
