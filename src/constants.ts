@@ -24,6 +24,7 @@ export const EXPENSE_CATEGORIES: Record<ExpenseCategory, { label: string; color:
   grooming: { label: 'Grooming', color: '#c084fc', bg: '#faf5ff', icon: '💇' },
   automobile_service: { label: 'Automobile Service', color: '#64748b', bg: '#f8fafc', icon: '🔧' },
   art_expense: { label: 'Art Expense', color: '#d946ef', bg: '#fdf4ff', icon: '🎨' },
+  trip: { label: 'Trip', color: '#0ea5e9', bg: '#f0f9ff', icon: '🧳' },
   // Investment categories
   fd: { label: 'Fixed Deposit', color: '#22c55e', bg: '#f0fdf4', icon: '📜' },
   rd: { label: 'Recurring Deposit', color: '#8b5cf6', bg: '#faf5ff', icon: '📅' },
@@ -100,7 +101,7 @@ export const LIVING_CATEGORIES: ExpenseCategory[] = [
 ];
 
 export const LIFESTYLE_CATEGORIES: ExpenseCategory[] = [
-  'travel', 'entertainment',
+  'travel', 'entertainment', 'trip',
 ];
 
 export const INVESTMENT_EXPENSE_CATEGORIES: ExpenseCategory[] = [

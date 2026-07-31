@@ -24,7 +24,8 @@ export type ExpenseCategory =
   | 'electricity_bill'
   | 'grooming'
   | 'automobile_service'
-  | 'art_expense';
+  | 'art_expense'
+  | 'trip';
 
 export type InvestmentCategory = 'fd' | 'rd' | 'ppf' | 'mf' | 'stocks' | 'gold';
 
