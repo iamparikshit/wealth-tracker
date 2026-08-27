@@ -25,7 +25,8 @@ export type ExpenseCategory =
   | 'grooming'
   | 'automobile_service'
   | 'art_expense'
-  | 'trip';
+  | 'trip'
+  | 'gifts';
 
 export type InvestmentCategory = 'fd' | 'rd' | 'ppf' | 'mf' | 'stocks' | 'gold';
 
